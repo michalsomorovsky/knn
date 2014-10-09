@@ -27,15 +27,15 @@ public class Main {
     public static final String PATH_TO_DATA_FILE = "assets/trainData";
     public static final String PATH_TO_IMAGE = "images/image";
 
-    public  static final int K = 13;
+    public  static final int K = 5;
     public static final boolean mknn = true;
 
     public static void main(String[] args) {
 	// write your code here
         KNN knn = new KNN();
         knn.loadData(PATH_TO_DATA_FILE);
-        //compute(knn, new Pattern(4.0, 2.0));
-        computeWholeGraph(knn, mknn);
+        computeOnePattern(knn, new Pattern(4.2, 1.8), mknn);
+        //computeWholeGraph(knn, mknn);
 
 
     }
@@ -111,5 +111,64 @@ public class Main {
         /*final ChartDemo chd = new ChartDemo("DEMO", chartPanel);
         chd.pack();
         chd.setVisible(true);*/
+    }
+
+    public static void computeOnePattern(KNN knn, Pattern pattern, boolean mknn){
+        XYSeries class1 = new XYSeries("Class 1");
+        XYSeries class2 = new XYSeries("Class 2");
+        XYSeries class3 = new XYSeries("Class 3");
+
+        ArrayList<PatternsDistance> data = knn.getData();
+
+        for(PatternsDistance p : data){
+            switch(p.getPattern().getClassOfPattern()){
+                case 1:
+                    class1.add(p.getPattern().getFeatureOne(), p.getPattern().getFeatureTwo());
+                    break;
+                case 2:
+                    class2.add(p.getPattern().getFeatureOne(), p.getPattern().getFeatureTwo());
+                    break;
+                case 3:
+                    class3.add(p.getPattern().getFeatureOne(), p.getPattern().getFeatureTwo());
+                    break;
+            }
+        }
+
+        int classOfPattern = compute(knn, pattern, mknn);
+
+        switch(classOfPattern){
+            case 1:
+                class1.add(pattern.getFeatureOne(), pattern.getFeatureTwo());
+                break;
+            case 2:
+                class2.add(pattern.getFeatureOne(), pattern.getFeatureTwo());
+                break;
+            case 3:
+                class3.add(pattern.getFeatureOne(), pattern.getFeatureTwo());
+                break;
+        }
+
+        XYSeriesCollection xydata = new XYSeriesCollection();
+        xydata.addSeries(class1);
+        xydata.addSeries(class2);
+        xydata.addSeries(class3);
+
+        JFreeChart chart = ChartFactory.createScatterPlot("KNN", "X feature", "Y feature", xydata);
+        //ChartPanel chartPanel = new ChartPanel(chart);
+
+        OutputStream out = null;
+        try {
+            out = new FileOutputStream(PATH_TO_IMAGE + "_" + (mknn ? "MkNN_" : "kNN_") + K + "one_pattern.png");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        BufferedImage chartImage = chart.createBufferedImage(500, 500);
+        try {
+            ImageIO.write(chartImage, "png", out);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 }
